@@ -14,16 +14,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Task } from "@/types/models";
 
 export default function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { createTask, refreshTasks, tasks, deleteTask, toggleTaskComplete } =
-    useTaskManager();
 
-  const handleCreateTask = async (title: string, description: string) => {
-    await createTask(title, description);
+  const {
+    createTask,
+    refreshTasks,
+    tasks,
+    deleteTask,
+    toggleTaskComplete,
+  } = useTaskManager();
+
+  const handleCreateTask = async (
+    title: string,
+    description: string,
+    label: Task["label"] | null,
+    dueDate: Date | null
+  ) => {
+    await createTask(title, description, label, dueDate);
     await refreshTasks();
-    console.log(`New Task Created: ${title}`);
     setIsDialogOpen(false);
   };
 
@@ -31,6 +42,7 @@ export default function Dashboard() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Your Tasks</h1>
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -38,6 +50,7 @@ export default function Dashboard() {
               Create Task
             </Button>
           </DialogTrigger>
+
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create New Task</DialogTitle>
@@ -45,10 +58,12 @@ export default function Dashboard() {
                 Enter the details for your new task below.
               </DialogDescription>
             </DialogHeader>
+
             <CreateTaskForm onSubmit={handleCreateTask} />
           </DialogContent>
         </Dialog>
       </div>
+
       {tasks.length > 0 ? (
         <div className="border rounded-md">
           <TaskList
