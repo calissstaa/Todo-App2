@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -17,11 +18,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
-import { labels } from "@/lib/labels";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { labels } from "@/lib/labels";
 import { Task } from "@/types/models";
 
 interface CreateTaskFormProps {
@@ -33,12 +33,14 @@ interface CreateTaskFormProps {
   ) => Promise<void>;
 }
 
-
 export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [label, setLabel] = useState<Task["label"] | null>(null);
-  const [dueDate, setDueDate] = useState<Date | null>(null);
+
+  // 🔑 UI state uses undefined (NOT null)
+  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,11 +50,18 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
     setIsSubmitting(true);
 
     try {
-      await onSubmit(title, description, label, dueDate);
+      await onSubmit(
+        title,
+        description,
+        label,
+        dueDate ?? null // 🔥 convert undefined → null for backend
+      );
+
+      // Reset form
       setTitle("");
       setDescription("");
       setLabel(null);
-      setDueDate(null);
+      setDueDate(undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create task");
     } finally {
@@ -64,9 +73,8 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Title */}
       <div>
-        <Label htmlFor="title">Title</Label>
+        <Label>Title</Label>
         <Input
-          id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Enter task title"
@@ -76,9 +84,8 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
 
       {/* Description */}
       <div>
-        <Label htmlFor="description">Description</Label>
+        <Label>Description</Label>
         <Textarea
-          id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Enter task description"
@@ -91,7 +98,9 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
         <Label>Label</Label>
         <Select
           value={label ?? ""}
-          onValueChange={(value) => setLabel(value as Task["label"])}
+          onValueChange={(value) =>
+            setLabel(value as Task["label"])
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder="Select a label" />
@@ -126,7 +135,7 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
             <Calendar
               mode="single"
               selected={dueDate}
-              onSelect={setDueDate}
+              onSelect={(day) => setDueDate(day)}
               initialFocus
             />
           </PopoverContent>
@@ -138,7 +147,7 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
         {isSubmitting ? "Creating..." : "Create Task"}
       </Button>
 
-      {error && <div className="text-red-500 text-sm">{error}</div>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
     </form>
   );
 }

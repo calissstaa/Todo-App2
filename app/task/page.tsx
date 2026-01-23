@@ -36,10 +36,13 @@ import { useTaskManager } from "@/hooks/useTaskManager";
 import { Task } from "@/types/models";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/hooks/use-toast";
-import Image from "next/image";
+
+// import Image from "next/image";
+
 import { useDropzone } from "react-dropzone";
 
 function TaskForm() {
+  
   const params = useSearchParams();
   const taskId = params.get("id")!;
   const {
@@ -55,6 +58,7 @@ function TaskForm() {
   const { session } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const [useNativeImg, setUseNativeImg] = useState(false);
 
   const handleImageUpload = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -120,32 +124,32 @@ function TaskForm() {
     }
   };
 
-  const renderImageDisplay = () => {
-    return (
-      <div className="space-y-2">
-        <div className="relative w-40 h-40 rounded-lg overflow-hidden">
-          <Image
-            src={`${
-              process.env.NEXT_PUBLIC_SUPABASE_URL
-            }/storage/v1/object/public/task-attachments/${task!.image_url}`}
-            alt="Task attachment"
-            fill
-            sizes="160px"
-            className="object-cover"
-          />
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          onClick={handleRemoveImage}
-        >
-          <Trash2 className="mr-1 h-4 w-4" />
-          Remove Image
-        </Button>
+ const renderImageDisplay = () => {
+  const imageSrc = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/task-attachments/${task!.image_url}`;
+
+  return (
+    <div className="space-y-2">
+      <div className="w-40 h-40 rounded-lg overflow-hidden bg-gray-100">
+        <img
+          src={imageSrc}
+          alt="Task attachment"
+          className="w-full h-full object-cover"
+        />
       </div>
-    );
-  };
+
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={handleRemoveImage}
+      >
+        <Trash2 className="mr-1 h-4 w-4" />
+        Remove Image
+      </Button>
+    </div>
+  );
+};
+
 
   const renderImageUpload = () => {
     return (

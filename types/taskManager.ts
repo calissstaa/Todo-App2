@@ -1,9 +1,14 @@
-import { Task } from "./models";
-import { BaseState } from "./auth";
+import { Task } from "@/types/models";
 
-export interface TaskState extends BaseState {
+export interface TaskState {
   task: Task | null;
   date: Date | undefined;
+  error: string | null;
+  isLoading: boolean;
+}
+
+export interface TasksState {
+  tasks: Task[];
 }
 
 export interface TaskOperations {
@@ -14,20 +19,15 @@ export interface TaskOperations {
   removeImage: () => Promise<void>;
 }
 
-export interface TasksState extends BaseState {
-  tasks: Task[];
-}
-
 export interface TasksOperations {
-  createTask: (title: string, description: string) => Promise<Task>;
+  createTask: (
+    title: string,
+    description: string,
+    label: Task["label"] | null,
+    dueDate: Date | null
+  ) => Promise<Task>;
+
   deleteTask: (taskId: string) => Promise<void>;
   toggleTaskComplete: (taskId: string, completed: boolean) => Promise<void>;
   refreshTasks: () => Promise<void>;
 }
-
-export type UseTaskManagerReturn = TaskState &
-  TasksState &
-  TaskOperations &
-  TasksOperations;
-export type UseTaskReturn = TaskState & TaskOperations;
-export type UseTasksReturn = TasksState & TasksOperations;
